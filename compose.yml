@@ -117,6 +117,8 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
       KAFKA_BROKERS: broker-1:19092,broker-2:19092,broker-3:19092
+    # Las instancias extra del paso 6 de la E2 se levantan con `docker compose run -d --no-deps`, que no publica
+    # puertos: por eso este queda fijo en el 3010 (un rango 3010-3013 deja a veces la unica instancia en el 3011).
     ports:
       - "3010:3010"
     depends_on:
@@ -140,8 +142,18 @@ services:
   libros:
     build: ../biblioteca-libros
     init: true
+    # L10: publica el catalogo en biblioteca.catalogo (compactado) al arrancar y cuando cambia catalogo.json.
+    environment:
+      KAFKA_BROKERS: broker-1:19092,broker-2:19092,broker-3:19092
     ports:
       - "3001:3001"
+    depends_on:
+      broker-1:
+        condition: service_healthy
+      broker-2:
+        condition: service_healthy
+      broker-3:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3001/libros').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
       interval: 10s
