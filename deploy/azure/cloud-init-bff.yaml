@@ -1,0 +1,9 @@
+#cloud-config
+# bff: Docker. Los paquetes bajan por el NAT de gw-azure (bff no tiene IP publica).
+# ASCII puro, igual que el de gw-azure.
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+runcmd:
+  - usermod -aG docker azureuser
